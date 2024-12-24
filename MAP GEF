@@ -1,0 +1,289 @@
+local allowedPlaceId = 15135285305  -- แทนที่ด้วย PlaceId ของแมพที่ต้องการ
+
+-- ตรวจสอบว่าเกมกำลังอยู่ในแมพที่ต้องการหรือไม่
+if game.PlaceId == allowedPlaceId then
+    -- หากเป็นแมพที่ต้องการ ให้โหลดสคริปต์ตามปกติ
+    local Fluent = loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"))()
+    local SaveManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/dawid-scripts/Fluent/master/Addons/SaveManager.lua"))()
+    local InterfaceManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/dawid-scripts/Fluent/master/Addons/InterfaceManager.lua"))()
+
+-- สร้างหน้าต่างหลัก
+local Window = Fluent:CreateWindow({
+    Title = "Xeno EZ " .. Fluent.Version,
+    SubTitle = "@xeno_executor",
+    TabWidth = 160,
+    Size = UDim2.fromOffset(580, 460),
+    Acrylic = true,
+    Theme = "Dark",
+    MinimizeKey = Enum.KeyCode.LeftControl
+})
+
+-- เพิ่มแท็บต่าง ๆ
+local Tabs = {
+    Main = Window:AddTab({ Title = "Main", Icon = "" }),
+    GEF = Window:AddTab({ Title = "Map GEF", Icon = "" }),
+    Settings = Window:AddTab({ Title = "Settings", Icon = "settings" })
+}
+Tabs.GEF:AddButton({
+    Title = "SHOP",
+    Description = "SHOP ITEM",
+    Callback = function()
+        Window:Dialog({
+            Title = "SHOP",
+            Content = "SHOP ITEM",
+            Buttons = {
+                {
+                    Title = "Confirm",
+                    Callback = function()
+                        game:GetService("Players").LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(285, -9, 502)
+                    end
+                },
+                {
+                    Title = "Cancel",
+                    Callback = function()
+                        print("Cancelled the dialog.")
+                    end
+                }
+            }
+        })
+    end
+})
+-- สร้าง Toggle สำหรับระบบ AutoTeleport และ Aimbot
+local Options = Fluent.Options
+local AutoTeleportToggle = Tabs.GEF:AddToggle("AutoTeleportToggle", { Title = "Auto Money", Default = false })
+
+
+-- ตัวแปรสำคัญสำหรับ AutoTeleport
+local itemNames = { "Money" }
+local autoTeleport = false
+local currentIndex = 1
+local items = {}
+
+-- ฟังก์ชันค้นหาไอเทมใน Workspace สำหรับ AutoTeleport
+local function findItemsByName(itemNames)
+    local items = {}
+    for _, object in pairs(game.Workspace:GetDescendants()) do
+        if table.find(itemNames, object.Name) then
+            print("Found item: " .. object.Name)
+            if object:IsA("BasePart") then
+                table.insert(items, object)
+            elseif object:IsA("Model") and object.PrimaryPart then
+                table.insert(items, object)
+            end
+        end
+    end
+    return items
+end
+
+-- ฟังก์ชันวาร์ปผู้เล่นไปยังไอเทมสำหรับ AutoTeleport
+local function teleportToItemAndCollect(item)
+    local player = game.Players.LocalPlayer
+    if player and player.Character and player.Character.PrimaryPart then
+        print("Teleporting to: " .. item.Name)
+        if item:IsA("BasePart") then
+            player.Character:SetPrimaryPartCFrame(CFrame.new(item.Position))
+        elseif item:IsA("Model") and item.PrimaryPart then
+            player.Character:SetPrimaryPartCFrame(CFrame.new(item.PrimaryPart.Position))
+        end
+
+        -- รอเวลาเล็กน้อยให้วาร์ปเสร็จ
+        wait(0.2)
+
+        -- จำลองการกดปุ่ม E เพื่อเก็บไอเทม
+        game:GetService("VirtualInputManager"):SendKeyEvent(true, "E", false, game)
+        game:GetService("VirtualInputManager"):SendKeyEvent(false, "E", false, game)
+    else
+        print("Player or item is missing!")
+    end
+end
+
+-- ฟังก์ชันเปิดระบบ AutoTeleport
+local function startAutoTeleport()
+    autoTeleport = true
+    items = findItemsByName(itemNames) -- ค้นหาไอเทมทั้งหมด
+
+    while autoTeleport do
+        if #items > 0 then
+            teleportToItemAndCollect(items[currentIndex])
+            currentIndex = currentIndex + 1
+            if currentIndex > #items then
+                currentIndex = 1 -- วนกลับไปจุดแรก
+            end
+        else
+            print("ไม่พบไอเทมที่ต้องการ")
+            items = findItemsByName(itemNames) -- ค้นหาใหม่
+        end
+        wait(0.7)
+    end
+end
+
+-- ฟังก์ชันปิดระบบ AutoTeleport
+local function stopAutoTeleport()
+    autoTeleport = false
+    print("Auto Teleport Stopped")
+end
+
+-- ฟังก์ชันสำหรับ Toggle ของ AutoTeleport
+AutoTeleportToggle:OnChanged(function()
+    if AutoTeleportToggle.Value then
+        startAutoTeleport() -- เปิดระบบ AutoTeleport
+    else
+        stopAutoTeleport() -- หยุดระบบ AutoTeleport
+    end
+end)
+
+
+    Tabs.Main:AddButton({
+        Title = "Aimbot",
+        Description = "Aimbot Free🔥ล็อคหัว 100%",
+        Callback = function()
+            Window:Dialog({
+                Title = "Aimbot",
+                Content = "Aimbot Free🔥ล็อคหัว 100%",
+                Buttons = {
+                    {
+                        Title = "Confirm",
+                        Callback = function()
+                            loadstring(game:HttpGet("https://raw.githubusercontent.com/Nattaphon07/Aimbot/refs/heads/main/Aimbot"))()
+                        end
+                    },
+                    {
+                        Title = "Cancel",
+                        Callback = function()
+                            print("Cancelled the dialog.")
+                        end
+                    }
+                }
+            })
+        end
+    })
+
+    
+    Tabs.Main:AddButton({
+        Title = "DEX",
+        Description = "",
+        Callback = function()
+            Window:Dialog({
+                Title = "DEX",
+                Content = "",
+                Buttons = {
+                    {
+                        Title = "Confirm",
+                        Callback = function()
+                            loadstring(game:HttpGet("https://raw.githubusercontent.com/Nattaphon07/INF/refs/heads/main/INF", true))()
+                        end
+                    },
+                    {
+                        Title = "Cancel",
+                        Callback = function()
+                            print("Cancelled the dialog.")
+                        end
+                    }
+                }
+            })
+        end
+    })
+
+
+    
+    Tabs.Main:AddButton({
+        Title = "EdgeIY",
+        Description = "",
+        Callback = function()
+            Window:Dialog({
+                Title = "EdgeIY",
+                Content = "",
+                Buttons = {
+                    {
+                        Title = "Confirm",
+                        Callback = function()
+                            loadstring(game:HttpGet('https://raw.githubusercontent.com/EdgeIY/infiniteyield/master/source'))()
+                        end
+                    },
+                    {
+                        Title = "Cancel",
+                        Callback = function()
+                            print("Cancelled the dialog.")
+                        end
+                    }
+                }
+            })
+        end
+    })
+
+
+-- สร้าง Dropdown ในแท็บ Main
+local Dropdown = Tabs.GEF:AddDropdown("ItemDropdown", {
+    Title = "Teleport to Item",
+    Values = {".......","Hammer", "Food", "Crowbar", "Bat", "Bullets", "Lantern", "Medkit", "Shells", "Soda", "Shotgun", "Handgun"},  -- รายชื่อไอเทมที่ต้องการให้เลือก
+    Multi = false,
+    Default = 1,
+})
+
+-- ตั้งค่า default ให้เลือก "Money"
+Dropdown:SetValue(".......")
+
+-- ฟังก์ชันค้นหาไอเทมตามชื่อ
+local function teleportToItemByName(itemName)
+    local foundItem = nil
+
+    -- ค้นหาใน workspace ตามชื่อที่กำหนด
+    for _, object in pairs(game.Workspace:GetDescendants()) do
+        if object.Name == itemName then
+            foundItem = object
+            break
+        end
+    end
+
+    if foundItem then
+        local player = game.Players.LocalPlayer
+        if player and player.Character and player.Character.PrimaryPart then
+            print("Teleporting to: " .. foundItem.Name)
+            if foundItem:IsA("BasePart") then
+                player.Character:SetPrimaryPartCFrame(CFrame.new(foundItem.Position))
+            elseif foundItem:IsA("Model") and foundItem.PrimaryPart then
+                player.Character:SetPrimaryPartCFrame(CFrame.new(foundItem.PrimaryPart.Position))
+            end
+        else
+            print("Player or item is missing!")
+        end
+    else
+        print("ไม่พบไอเทมที่ชื่อ " .. itemName)
+    end
+end
+
+-- เมื่อ Dropdown เปลี่ยนค่า, จะทำการวาร์ปไปยังไอเทมที่เลือก
+Dropdown:OnChanged(function(Value)
+    print("Dropdown changed:", Value)
+    teleportToItemByName(Value)  -- วาร์ปไปยังไอเทมที่เลือกจาก dropdown
+end)
+
+else
+    -- ถ้าไม่ใช่แมพที่ต้องการ ให้ไม่รันสคริปต์หรือแจ้งเตือน
+    print("ไม่ใช่แมพที่ต้องการให้รันสคริปต์")
+end
+
+-- การตั้งค่าระบบ SaveManager และ InterfaceManager
+SaveManager:SetLibrary(Fluent)
+InterfaceManager:SetLibrary(Fluent)
+
+SaveManager:IgnoreThemeSettings()
+SaveManager:SetIgnoreIndexes({})
+InterfaceManager:SetFolder("FluentScriptHub")
+SaveManager:SetFolder("FluentScriptHub/specific-game")
+
+InterfaceManager:BuildInterfaceSection(Tabs.Settings)
+SaveManager:BuildConfigSection(Tabs.Settings)
+
+-- เลือกแท็บเริ่มต้น
+Window:SelectTab(1)
+
+-- แจ้งเตือนเมื่อโหลดสคริปต์เสร็จ
+Fluent:Notify({
+    Title = "Fluent",
+    Content = "The script has been loaded.",
+    Duration = 8
+})
+
+-- โหลด Config ที่ตั้งค่าไว้
+SaveManager:LoadAutoloadConfig()
